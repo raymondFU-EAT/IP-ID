@@ -1,0 +1,77 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+public class FindIdAndIp {
+    public static void main(String[] args) {
+        // 資料夾路徑
+        String folderPath = "C:/path/to/folder";
+        // 身份證字號正則表達式
+        String idRegex = "[A-Z][1-2]\\d{8}";
+        // IP正則表達式
+        String ipRegex = "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}";
+
+        // 新增Excel工作簿
+        Workbook workbook = new XSSFWorkbook();
+        // 新增工作表
+        Sheet sheet = workbook.createSheet("搜尋結果");
+        // 設定表頭
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("檔案名稱");
+        headerRow.createCell(1).setCellValue("身份證字號");
+        headerRow.createCell(2).setCellValue("IP");
+
+        // 遍歷資料夾內的所有文件
+        int rowNum = 1;
+        for (File file : new File(folderPath).listFiles()) {
+            // 新增表頭行
+            Row fileRow = sheet.createRow(rowNum++);
+            fileRow.createCell(0).setCellValue(file.getName());
+
+            // 讀取文件內容，使用try-with-resources自動關閉流
+            String content = "";
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                content = br.lines().reduce("", (a, b) -> a + "\n" + b);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // 找出身份證字號
+            Pattern idPattern = Pattern.compile(idRegex);
+            Matcher idMatcher = idPattern.matcher(content);
+            while (idMatcher.find()) {
+                Row row = sheet.getRow(rowNum);
+                if (row == null) {
+                    row = sheet.createRow(rowNum);
+                }
+                row.createCell(1).setCellValue(idMatcher.group());
+                rowNum++;
+            }
+
+            // 找出IP
+            Pattern ipPattern = Pattern.compile(ipRegex);
+            Matcher ipMatcher = ipPattern.matcher(content);
+            while (ipMatcher.find()) {
+                Row row = sheet.getRow(rowNum);
+                if (row == null) {
+                    row = sheet.createRow(rowNum);
+                }
+                row.createCell(2).setCellValue(ipMatcher.group());
+                rowNum++;
+            }
+        }
+
+        // 寫入Excel檔案，使用try-with-resources自動關閉工作簿
+        try (workbook) {
+            workbook.write(new File("output.xlsx"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
