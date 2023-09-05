@@ -17,3 +17,8 @@ r1 = urllib.request.urlopen("https://www.ssllabs.com/ssltest/analyze.html?d=mage
 soup = BeautifulSoup(r1,"html.parser")
 sel = soup.select("td.tableLeft font") 
 print(sel)
+
+soup = BeautifulSoup(r.text,"html.parser") #將網頁資料以html.parser
+sel = soup.select("li.pill-red") #取HTML標中的 <div class="title"></div> 中的<a>標籤存入sel
+response = etree.HTML(text=str(sel))
+print(response.xpath('string(.)'))
