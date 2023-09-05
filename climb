@@ -1,0 +1,19 @@
+import requests
+import scrapy
+import urllib
+from bs4 import BeautifulSoup
+from lxml import etree
+from scrapy import Spider, Request
+
+##securityheaders
+r = requests.get("https://securityheaders.com/?q=https%3A%2F%2Fithelp.ithome.com.tw%2Farticles%2F10202121&followRedirects=on") #將此頁面的HTML GET下來
+r.encoding = r.apparent_encoding
+soup = BeautifulSoup(r.text,"html.parser") #將網頁資料以html.parser
+sel = soup.select("li.pill-red") #取HTML標中的 <div class="title"></div> 中的<a>標籤存入sel
+response = etree.HTML(text=str(sel))
+print(response.xpath('string(.)'))
+
+r1 = urllib.request.urlopen("https://www.ssllabs.com/ssltest/analyze.html?d=magent.fubonlife.com.tw")
+soup = BeautifulSoup(r1,"html.parser")
+sel = soup.select("td.tableLeft font") 
+print(sel)
